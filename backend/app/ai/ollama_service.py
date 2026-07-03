@@ -1,20 +1,31 @@
 import requests
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
+from app.core.config import settings
 
 
-def generate(prompt: str):
+class OllamaService:
 
-    response = requests.post(
-        OLLAMA_URL,
-        json={
-            "model": "llama3.1:8b",
-            "prompt": prompt,
-            "stream": False
-        },
-        timeout=120,
-    )
+    def __init__(self):
+        self.url = "http://localhost:11434/api/generate"
+        self.model = settings.MODEL_NAME
 
-    response.raise_for_status()
+    def generate(self, prompt: str) -> str:
 
-    return response.json()["response"]
+        response = requests.post(
+            self.url,
+            json={
+                "model": self.model,
+                "prompt": prompt,
+                "stream": False,
+            },
+            timeout=180,
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+        return data["response"].strip()
+
+
+ollama = OllamaService()

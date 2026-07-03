@@ -10,6 +10,11 @@ class Settings(BaseSettings):
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    MODEL_NAME: str = "llama3.1:8b"
+
+    OLLAMA_URL: str = "http://localhost:11434"
+
+
     class Config:
         env_file = ".env"
 
