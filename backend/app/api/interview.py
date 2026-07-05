@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from app.ai.ollama_service import generate
-from app.prompts.question_prompt import build_prompt
+from app.ai.ollama_service import ollama
+from app.prompts.question_prompt import build_question_prompt
 
 router = APIRouter(prefix="/interview", tags=["Interview"])
 
@@ -12,9 +12,9 @@ def generate_question(
     difficulty: str,
 ):
 
-    prompt = build_prompt(topic, difficulty)
+    prompt = build_question_prompt(topic, difficulty)
 
-    question = generate(prompt)
+    question = ollama.generate(prompt)
 
     return {
         "topic": topic,

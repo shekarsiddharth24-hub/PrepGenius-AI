@@ -1,11 +1,12 @@
+from datetime import datetime
+
 from sqlalchemy import Column
-from sqlalchemy import Integer
-from sqlalchemy import String
+from sqlalchemy import DateTime
 from sqlalchemy import Float
 from sqlalchemy import ForeignKey
-from sqlalchemy import DateTime
-
-from datetime import datetime
+from sqlalchemy import Integer
+from sqlalchemy import Text
+from sqlalchemy.orm import relationship
 
 from app.database.database import Base
 
@@ -15,20 +16,32 @@ class Interview(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    topic = Column(String)
+    topic = Column(Text, nullable=False)
 
-    difficulty = Column(String)
+    difficulty = Column(Text, nullable=False)
 
-    question = Column(String)
+    question = Column(Text, nullable=False)
 
-    ideal_answer = Column(String)
+    ideal_answer = Column(Text, nullable=False)
 
-    user_answer = Column(String)
+    user_answer = Column(Text, nullable=False)
 
-    score = Column(Float)
+    semantic_score = Column(Float)
 
-    feedback = Column(String)
+    technical_score = Column(Float)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    completeness_score = Column(Float)
+
+    communication_score = Column(Float)
+
+    overall_score = Column(Float)
+
+    feedback = Column(Text)
+
+    status=Column(Text,default="completed",nullable=False,)
+
+    created_at = Column(DateTime, default=datetime.utcnow,index=True)
+
+    user = relationship("User",back_populates="interviews")

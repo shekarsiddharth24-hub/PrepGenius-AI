@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings,SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -14,9 +14,15 @@ class Settings(BaseSettings):
 
     OLLAMA_URL: str = "http://localhost:11434"
 
+    HF_TOKEN: str | None = None
 
-    class Config:
-        env_file = ".env"
+    DATABASE_URL: str = "sqlite:///./prepgenius.db"
+
+
+    model_config=SettingsConfigDict(
+        env_file=".env",
+        extra="ignore"
+    )
 
 
 settings = Settings()

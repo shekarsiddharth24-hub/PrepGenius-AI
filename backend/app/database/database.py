@@ -1,7 +1,10 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from app.core.config import settings
 
-DATABASE_URL = "sqlite:///./prepgenius.db"
+
+# DATABASE_URL = "sqlite:///./prepgenius.db"
+DATABASE_URL= settings.DATABASE_URL
 
 
 class Base(DeclarativeBase):
@@ -9,8 +12,9 @@ class Base(DeclarativeBase):
 
 
 engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}
+    settings.DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    pool_pre_ping=True,
 )
 
 SessionLocal = sessionmaker(

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.ai.ollama_service import generate
+from app.ai.ollama_service import ollama
 
 router = APIRouter()
 
@@ -8,7 +8,7 @@ router = APIRouter()
 @router.get("/test-ai")
 def test_ai():
 
-    answer = generate("Say Hello from PrepGenius AI")
+    answer = ollama.generate("Say Hello from PrepGenius AI")
 
     return {
         "response": answer

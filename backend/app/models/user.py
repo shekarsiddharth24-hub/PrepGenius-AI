@@ -3,6 +3,8 @@ from datetime import datetime
 
 from app.database.database import Base
 
+from sqlalchemy.orm import relationship
+
 
 class User(Base):
     __tablename__ = "users"
@@ -16,3 +18,10 @@ class User(Base):
     password = Column(String, nullable=False)
 
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    interviews=relationship(
+        "Interview",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    

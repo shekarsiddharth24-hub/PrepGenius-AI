@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
+
 
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException
@@ -9,14 +11,14 @@ from app.core.config import settings
 from app.database.database import get_db
 from app.models.user import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 def create_access_token(data: dict):
 
     payload = data.copy()
 
-    expire = datetime.utcnow() + timedelta(
+    expire = datetime.now(UTC) + timedelta(
         minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
 
@@ -36,7 +38,8 @@ def get_current_user(
 
     credentials_exception = HTTPException(
         status_code=401,
-        detail="Could not validate credentials",
+        detail="Invalid or expired access token",
+        headers={"WWW-Authenticate" : "Bearer"}
     )
 
     try:
