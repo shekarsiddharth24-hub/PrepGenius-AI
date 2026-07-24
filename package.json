@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "knip": "^6.27.0",
+    "ts-prune": "^0.10.3"
+  },
+  "dependencies": {
+    "framer-motion": "^12.42.2"
+  }
+}

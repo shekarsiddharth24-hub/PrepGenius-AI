@@ -15,6 +15,20 @@ class UserLogin(BaseModel):
     password: str
 
 
+class UserUpdate(BaseModel):
+    name: str
+    email: EmailStr
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
 class UserResponse(BaseModel):
     id: int
     name: str
@@ -22,3 +36,4 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+

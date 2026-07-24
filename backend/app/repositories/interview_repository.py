@@ -37,6 +37,22 @@ class InterviewRepository:
             )
             .all()
         )
+    
+    def get_by_id(
+        self,
+        db: Session,
+        interview_id: int,
+        user_id: int,
+    ):
+
+        return (
+            db.query(Interview)
+            .filter(
+                Interview.id == interview_id,
+                Interview.user_id == user_id,
+            )
+            .first()
+        )
 
 
 interview_repository = InterviewRepository()

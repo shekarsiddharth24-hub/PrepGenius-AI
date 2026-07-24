@@ -1,19 +1,55 @@
+# =====================
 # Python
-backend/.venv/
+# =====================
+
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
 
-# Environment variables
-backend/.env
+.venv/
+venv/
 
-# Node
-frontend/node_modules/
+.env
 
-# macOS
+# Database
+*.db
+*.sqlite3
+
+
+# =====================
+# FastAPI
+# =====================
+
+.pytest_cache/
+.mypy_cache/
+
+
+# =====================
+# React
+# =====================
+
+node_modules/
+dist/
+build/
+
+
+# =====================
+# IDE
+# =====================
+
+.vscode/
+.idea/
+
+
+# =====================
+# OS
+# =====================
+
 .DS_Store
 
-# VS Code
-.vscode/
 
+# =====================
 # Logs
+# =====================
+
 *.log

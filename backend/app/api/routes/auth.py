@@ -4,26 +4,34 @@ from fastapi import HTTPException
 
 from sqlalchemy.orm import Session
 
+from fastapi.security import OAuth2PasswordRequestForm
+
 from app.database.database import get_db
 
-from app.schemas.user import UserCreate
-from app.schemas.user import UserResponse
+from app.models.user import User
+
+from app.schemas.user import (
+    UserCreate,
+    UserResponse,
+    UserLogin,
+    Token,
+    UserUpdate,
+    ChangePasswordRequest,
+    MessageResponse,
+)
 
 from app.services.user_service import (
     create_user,
     get_user_by_email,
+    authenticate_user,
+    update_profile,
+    change_password,
 )
 
-from app.schemas.user import UserLogin
-from app.schemas.user import Token
-from app.services.user_service import authenticate_user
-from app.core.auth import create_access_token
- 
-from app.core.auth import get_current_user
-from app.models.user import User
-
-from fastapi.security import OAuth2PasswordRequestForm
-
+from app.core.auth import (
+    create_access_token,
+    get_current_user,
+)
 
 router = APIRouter(
     prefix="/auth",
@@ -34,13 +42,11 @@ router = APIRouter(
 @router.post(
     "/register",
     response_model=UserResponse,
-    # status_code=status.HTTP_201_CREATED
 )
 def register(
     user: UserCreate,
     db: Session = Depends(get_db),
 ):
-
     existing_user = get_user_by_email(
         db,
         user.email,
@@ -63,17 +69,13 @@ def register(
     response_model=Token,
 )
 def login(
-    # user: UserLogin,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
 ):
-
     authenticated_user = authenticate_user(
         db,
         form_data.username,
         form_data.password,
-        # user.email,
-        # user.password,
     )
 
     if authenticated_user is None:
@@ -84,7 +86,7 @@ def login(
 
     token = create_access_token(
         {
-            "sub": authenticated_user.email
+            "sub": authenticated_user.email,
         }
     )
 
@@ -93,8 +95,43 @@ def login(
         "token_type": "bearer",
     }
 
-@router.get("/me")
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+)
 def get_me(
     current_user: User = Depends(get_current_user),
 ):
     return current_user
+
+
+@router.put(
+    "/me",
+    response_model=UserResponse,
+)
+def update_me(
+    user_update: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return update_profile(
+        db,
+        current_user,
+        user_update,
+    )
+
+@router.put(
+    "/change-password",
+    response_model=MessageResponse,
+)
+def update_password(
+    password_data: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return change_password(
+        db,
+        current_user,
+        password_data,
+    )

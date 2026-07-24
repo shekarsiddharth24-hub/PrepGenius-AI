@@ -24,4 +24,9 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan"
     )
+
+    resume_analyses=relationship(
+        "ResumeAnalysis",
+        back_populates="user"
+    )
     
