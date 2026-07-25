@@ -42,10 +42,11 @@ const ResumeAnalyzerPage = () => {
                 },
 
 
-                onError:(error)=>{
+                onError:(error: any)=>{
+                    console.error("status: ",error.response?.status);
+                    console.error("Response: ",error.response?.data);
 
                     console.error(
-                        "Resume analysis failed:",
                         error,
                     );
 

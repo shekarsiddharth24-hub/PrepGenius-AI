@@ -95,7 +95,6 @@ export interface InterviewHistoryItem {
 }
 
 export interface ScoreBreakdownResult {
-  interview_type: "technical" | "behavioral";
 
   overall_score: number;
 

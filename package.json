@@ -4,6 +4,8 @@
     "ts-prune": "^0.10.3"
   },
   "dependencies": {
-    "framer-motion": "^12.42.2"
+    "@monaco-editor/react": "^4.7.0",
+    "framer-motion": "^12.42.2",
+    "monaco-editor": "^0.56.0"
   }
 }

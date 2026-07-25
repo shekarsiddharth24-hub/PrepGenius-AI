@@ -9,6 +9,7 @@ import type { EvaluationResponse } from "../../types/interview";
 import ScoreCard from "../../components/interview/ScoreCard";
 import ScoreBreakdown from "../../components/interview/ScoreBreakdown";
 import FeedbackCard from "../../components/interview/FeedbackCard";
+import IdealAnswerSection from "../../components/history/IdealAnswerSection";
 
 export default function InterviewResultPage() {
   const location = useLocation();
@@ -35,6 +36,12 @@ export default function InterviewResultPage() {
         result={result}
         interviewType={interviewType}
       />
+
+      {interviewType === "technical" && result.ideal_answer && (
+        <IdealAnswerSection
+          answer={result.ideal_answer}
+        />
+      )}
 
       <FeedbackCard result={result} />
 

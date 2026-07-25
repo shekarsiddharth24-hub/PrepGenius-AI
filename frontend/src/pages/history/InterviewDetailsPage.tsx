@@ -15,7 +15,7 @@ import QuestionSection from "../../components/history/QuestionSection";
 import IdealAnswerSection from "../../components/history/IdealAnswerSection";
 import CandidateAnswerSection from "../../components/history/CandidateAnswerSection";
 import FeedbackSection from "../../components/history/FeedbackSection";
-
+ 
 const container = {
   hidden: {},
   show: {
@@ -48,6 +48,9 @@ export default function InterviewDetailsPage() {
   if (!interview) {
     return <Navigate to="/history" replace />;
   }
+
+  const isTechnicalInterview =
+    (interview.interview_type ?? "technical") === "technical";
 
   return (
     <motion.div
@@ -90,21 +93,18 @@ export default function InterviewDetailsPage() {
       </motion.div>
 
       <motion.div variants={item}>
-        <QuestionSection
-          question={interview.question}
-        />
+        <QuestionSection question={interview.question} />
       </motion.div>
 
-      <motion.div variants={item}>
-        <IdealAnswerSection
-          answer={interview.ideal_answer}
-        />
-      </motion.div>
+      {/* Show ideal answer only for technical interviews */}
+      {isTechnicalInterview && (
+        <motion.div variants={item}>
+          <IdealAnswerSection answer={interview.ideal_answer} />
+        </motion.div>
+      )}
 
       <motion.div variants={item}>
-        <CandidateAnswerSection
-          answer={interview.user_answer}
-        />
+        <CandidateAnswerSection answer={interview.user_answer} />
       </motion.div>
 
       <motion.div variants={item}>

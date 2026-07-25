@@ -14,6 +14,16 @@ export async function analyzeResume(
   formData.append("file", file);
   formData.append("target_role", targetRole);
 
+  console.log("===== Resume Upload =====");
+  console.log("File:", file.name);
+  console.log("Type:", file.type);
+  console.log("Target Role:", targetRole);
+
+  for (const [key, value] of formData.entries()) {
+    console.log(key, value);
+  }
+
+
   const response = await api.post<ResumeAnalysis>(
     "/resume/analyze",
     formData,

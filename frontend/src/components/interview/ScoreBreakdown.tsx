@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 
-import type { Interview } from "../../types/interview";
+import type { ScoreBreakdownResult } from "../../types/interview";
 
 import GlassCard from "../ui/GlassCard";
 import GlassTiltCard from "../ui/GlassTiltCard";
 
 interface Props {
-  result: Interview;
+  result: ScoreBreakdownResult;
   interviewType: "technical" | "behavioral";
 }
 
