@@ -1,55 +1,33 @@
-# =====================
 # Python
-# =====================
-
 __pycache__/
 *.py[cod]
 *.pyo
 
+# Virtual Environment
 .venv/
 venv/
 
+# Environment Variables
 .env
+.env.*
 
 # Database
 *.db
-*.sqlite3
+prepgenius.db
 
-
-# =====================
-# FastAPI
-# =====================
-
-.pytest_cache/
-.mypy_cache/
-
-
-# =====================
-# React
-# =====================
-
-node_modules/
-dist/
-build/
-
-
-# =====================
 # IDE
-# =====================
-
 .vscode/
 .idea/
 
-
-# =====================
-# OS
-# =====================
-
+# macOS
 .DS_Store
 
-
-# =====================
 # Logs
-# =====================
-
 *.log
+
+# Node
+node_modules/
+
+# Build
+dist/
+build/
