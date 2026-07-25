@@ -93,11 +93,6 @@ npm install
 npm run dev
 ```
 
-## 📸 Screenshots
-
-Add screenshots for: - Login - Dashboard - Interview - Resume Analyzer -
-History - Analytics
-
 ## 🗺 Roadmap
 
 -   Voice Interviews
