@@ -30,9 +30,24 @@ def build_resume_prompt(
                 "tech_stack": [],
             }
         ],
-        "strengths": [],
-        "weaknesses": [],
-        "missing_skills": [],
+        "strengths": [
+            {
+                "text": "",
+                "evidence": "",
+            }
+        ],
+        "weaknesses": [
+            {
+                "text": "",
+                "evidence": "",
+            }
+        ],
+        "missing_skills": [
+            {
+                "skill": "",
+                "reason": "",
+            }
+        ],
         "recommended_topics": [],
     }
 
@@ -49,7 +64,9 @@ Prioritize evaluating the candidate based on these key competencies:
 
 Return ONLY valid JSON matching the schema.
 
-General Rules:
+====================================
+General Rules
+====================================
 
 - Return ONLY JSON.
 - Do NOT wrap the response in markdown.
@@ -61,11 +78,37 @@ General Rules:
 - Never fabricate information.
 - Base every conclusion ONLY on the resume.
 
-Important Evaluation Principle:
+====================================
+Evidence Requirement
+====================================
+
+Every evaluation must be supported by explicit evidence from the resume.
+
+For every strength:
+
+- Include the exact resume evidence that supports it.
+- Do not infer experience that is not written.
+
+For every weakness:
+
+- Cite the missing or insufficient evidence that caused the weakness.
+- If something is absent from the resume, use phrases such as:
+    - "Not mentioned in resume"
+    - "No evidence provided"
+
+For every missing skill:
+
+- Explain why it is considered missing for the target role.
+- Do not claim the candidate lacks a skill unless it is not mentioned anywhere in the resume.
+
+====================================
+Important Evaluation Principle
+====================================
 
 No resume is perfect.
 
 Evaluate the resume realistically as a recruiter would.
+
 Every resume has strengths, weaknesses, and improvement areas.
 
 If information is missing:
@@ -74,13 +117,80 @@ If information is missing:
 - Clearly indicate the absence of evidence.
 - Provide improvement-oriented observations.
 - Use phrases such as:
-  "Not mentioned in resume"
-  "No evidence provided"
-  "Could be improved by adding..."
-  "Limited information available"
+    - "Not mentioned in resume"
+    - "No evidence provided"
+    - "Could be improved by adding..."
+    - "Limited information available"
 
 The goal is not to reject the candidate.
+
 The goal is to identify the current resume quality and improvement opportunities.
+
+====================================
+Analysis Workflow
+====================================
+
+Before generating the final JSON, perform the following steps internally.
+
+Step 1: Extract Facts
+
+Extract ONLY information explicitly stated in the resume, including:
+
+- Technical skills
+- Soft skills
+- Projects
+- Education
+- Work experience
+- Certifications
+- Tools
+- Frameworks
+- Programming languages
+- Databases
+- Cloud platforms
+- Achievements
+
+Do NOT infer or assume any information.
+
+Step 2: Identify Missing Information
+
+Compare the extracted facts against the target role competencies.
+
+Determine:
+
+- Important skills explicitly missing
+- Areas with limited evidence
+- Technologies expected for the role but not mentioned
+- Missing project depth
+- Missing measurable impact
+
+If information is absent, treat it as:
+
+- "Not mentioned in resume"
+
+Step 3: Evaluate the Resume
+
+Using ONLY the extracted facts:
+
+- Calculate the resume score.
+- Identify strengths supported by resume evidence.
+- Identify weaknesses supported by missing or limited evidence.
+- Recommend interview topics based on:
+    1. Missing skills
+    2. Weak technical areas
+    3. Technologies mentioned in projects that deserve deeper assessment
+
+Do NOT introduce any new facts during evaluation.
+
+Step 4: Generate Output
+
+Return ONLY valid JSON matching the provided schema.
+
+Ensure every evaluation is supported by resume evidence or explicitly states:
+
+- "Not mentioned in resume"
+- "No evidence provided"
+
+Do not include your intermediate reasoning or these steps in the output.
 
 ====================================
 Resume Score
@@ -94,16 +204,16 @@ Total = 100
 
 Scoring Guidelines:
 
-90-100
+90–100
 Excellent resume for the target role.
 
-80-89
+80–89
 Good resume with only minor improvements required.
 
-70-79
+70–79
 Average resume with noticeable technical gaps.
 
-60-69
+60–69
 Below average. Missing important skills or project depth.
 
 Below 60
@@ -136,12 +246,12 @@ Extract ONLY soft skills explicitly mentioned.
 
 Examples:
 
-Leadership
-Communication
-Teamwork
-Problem Solving
+- Leadership
+- Communication
+- Teamwork
+- Problem Solving
 
-Do not infer soft skills.
+Do NOT infer soft skills.
 
 ====================================
 Projects
@@ -160,21 +270,27 @@ For every project:
 Strengths
 ====================================
 
-Generate strengths ONLY from resume evidence.
+Generate strengths ONLY from explicit resume evidence.
 
-Focus on strengths relevant to the target role.
+Each strength must include:
 
-Examples:
+- text
+- evidence
 
-- Strong project portfolio
-- Excellent Python development experience
-- Strong backend development skills
-- Good machine learning knowledge
-- Experience with cloud platforms
+Example:
 
-Do NOT generate generic strengths.
+{{
+    "text": "Strong backend development experience",
+    "evidence": "Developed REST APIs using FastAPI and SQLAlchemy."
+}}
 
-Maximum: 5
+Rules:
+
+- Evidence should quote or closely paraphrase the resume.
+- Do NOT invent evidence.
+- Do NOT infer experience.
+- Focus on strengths relevant to the target role.
+- Maximum: 5
 
 ====================================
 Weaknesses
@@ -184,13 +300,27 @@ Weaknesses MUST be based ONLY on technical gaps found in the resume.
 
 Never generate personality weaknesses.
 
+Each weakness must include:
+
+- text
+- evidence
+
+Example:
+
+{{
+    "text": "No deployment experience mentioned",
+    "evidence": "No evidence provided"
+}}
+
 Weaknesses should come from:
 
-- Missing important technologies for the target role
+- Missing important technologies
 - Limited project complexity
 - Limited production experience
-- Missing tools commonly expected for the role
+- Missing tools commonly expected
 - Lack of measurable impact
+
+Never invent missing experience.
 
 Maximum: 5
 
@@ -203,6 +333,18 @@ Identify important skills that are missing for this target role.
 Use the prioritized competencies below as your reference:
 
 {focus}
+
+Each item must contain:
+
+- skill
+- reason
+
+Example:
+
+{{
+    "skill": "Docker",
+    "reason": "Not mentioned in resume."
+}}
 
 Return ONLY genuinely missing skills.
 
@@ -226,13 +368,26 @@ Maximum: 6 topics.
 Final Rules
 ====================================
 
-- Every output must be supported by resume evidence.
-- Never fabricate experience.
-- Never fabricate projects.
-- Never fabricate skills.
-- Keep lists concise.
-- Prioritize observations relevant to the target role.
-- Return JSON matching EXACTLY this schema.
+Every evaluative statement must include supporting evidence.
+
+Evidence Rules:
+
+- Do NOT fabricate quotes.
+- Do NOT fabricate experience.
+- Do NOT fabricate projects.
+- Do NOT fabricate skills.
+- Evidence must come directly from the resume.
+- If evidence does not exist, explicitly state:
+    - "Not mentioned in resume"
+    - "No evidence provided"
+
+If you cannot support a conclusion with resume evidence, do NOT make that conclusion.
+
+Keep lists concise.
+
+Prioritize observations relevant to the target role.
+
+Return JSON matching EXACTLY this schema.
 
 Schema:
 
