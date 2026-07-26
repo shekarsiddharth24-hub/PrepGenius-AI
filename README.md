@@ -93,14 +93,6 @@ npm install
 npm run dev
 ```
 
-## 🗺 Roadmap
-
--   Voice Interviews
--   Live Coding Interviews
--   AI Career Coach
--   ATS Resume Checker
--   Adaptive Learning Paths
-
 ## 🤝 Contributing
 
 Fork the repository, create a feature branch, commit your changes, and
