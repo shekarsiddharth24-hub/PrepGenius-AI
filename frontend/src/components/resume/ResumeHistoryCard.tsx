@@ -3,7 +3,6 @@ import { FileText, Download, Sparkles } from "lucide-react";
 
 import type { ResumeHistoryItem } from "../../types/resume";
 
-import GlassTiltCard from "../ui/GlassTiltCard";
 import GlassPanel from "../ui/GlassPanel";
 
 interface Props {
@@ -17,7 +16,7 @@ const ResumeHistoryCard = ({
 }: Props) => {
 
   return (
-    <GlassTiltCard>
+   
 
       <GlassPanel
         className="
@@ -280,7 +279,6 @@ const ResumeHistoryCard = ({
 
       </GlassPanel>
 
-    </GlassTiltCard>
   );
 };
 

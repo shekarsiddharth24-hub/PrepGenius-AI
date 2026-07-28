@@ -9,8 +9,8 @@ export default function GlassTiltCard({
 }: GlassTiltCardProps) {
   return (
     <Tilt
-      tiltMaxAngleX={8}
-      tiltMaxAngleY={8}
+      tiltMaxAngleX={6}
+      tiltMaxAngleY={6}
       perspective={1200}
       transitionSpeed={1200}
       glareEnable={false}

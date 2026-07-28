@@ -1,7 +1,6 @@
 import AuthCard from "../../components/auth/AuthCard";
 import RegisterForm from "../../components/auth/RegisterForm";
 import AuroraBackground from "../../components/ui/AuroraBackground";
-import { BrainCircuit } from "lucide-react";
 
 export default function RegisterPage() {
   return (

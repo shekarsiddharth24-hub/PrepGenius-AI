@@ -167,7 +167,8 @@ class ResumeService:
             return None
 
         return pdf_generator.build_resume_report(
-            analysis,
+            record=analysis,
+            analysis=analysis.parsed_analysis,
         )
 
 

@@ -1,4 +1,5 @@
 from datetime import datetime
+from app.schemas.resume import ResumeAnalysisResponse
 import json
 
 from sqlalchemy import Column
@@ -112,3 +113,16 @@ class ResumeAnalysis(Base):
     @property
     def recommended_topics_list(self):
         return json.loads(self.recommended_topics)
+
+    @property
+    def parsed_analysis(self) -> ResumeAnalysisResponse:
+        return ResumeAnalysisResponse(
+            resume_score=self.resume_score,
+            technical_skills=json.loads(self.technical_skills),
+            soft_skills=json.loads(self.soft_skills),
+            projects=json.loads(self.projects),
+            strengths=json.loads(self.strengths),
+            weaknesses=json.loads(self.weaknesses),
+            missing_skills=json.loads(self.missing_skills),
+            recommended_topics=json.loads(self.recommended_topics),
+    )
