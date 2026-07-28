@@ -44,6 +44,12 @@ class ResumeAnalysis(Base):
         default="[]",
     )
 
+    projects = Column(
+    Text,
+    nullable=False,
+    default="[]",
+    )
+
     strengths = Column(
         Text,
         nullable=False,
@@ -86,6 +92,10 @@ class ResumeAnalysis(Base):
     @property
     def soft_skills_list(self):
         return json.loads(self.soft_skills)
+
+    @property
+    def projects_list(self):
+        return json.loads(self.projects)
 
     @property
     def strengths_list(self):

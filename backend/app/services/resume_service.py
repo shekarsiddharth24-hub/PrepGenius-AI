@@ -1,4 +1,5 @@
 from fastapi import UploadFile
+from fastapi.encoders import jsonable_encoder
 import json
 
 from app.utils.pdf_parser import (
@@ -66,9 +67,9 @@ class ResumeService:
         return text
 
     def analyze_resume(
-    self,
-    resume_text: str,
-    target_role: str,
+        self,
+        resume_text: str,
+        target_role: str,
     ):
 
         prompt = build_resume_prompt(
@@ -80,79 +81,81 @@ class ResumeService:
             prompt,
         )
 
-
         response = (
-          response.replace("```json", "")
-          .replace("```", "")
-          .strip()
+            response.replace("```json", "")
+            .replace("```", "")
+            .strip()
         )
 
-       
-        analysis=json.loads(response)
-
+        analysis = json.loads(response)
 
         return ResumeAnalysisResponse(**analysis)
-    
+
     def save_analysis(
-            self,
-            db,
-            user_id:int,
-            filename: str,
-            analysis: dict,
+        self,
+        db,
+        user_id: int,
+        filename: str,
+        analysis: ResumeAnalysisResponse,
     ):
+        # Convert all nested Pydantic models into plain Python dicts/lists
+        data = jsonable_encoder(analysis)
+
         return resume_repository.create(
             db=db,
             user_id=user_id,
             filename=filename,
-            resume_score=analysis.resume_score,
+            resume_score=data["resume_score"],
             technical_skills=json.dumps(
-                analysis.technical_skills
+                data["technical_skills"]
             ),
             soft_skills=json.dumps(
-               analysis.soft_skills
+                data["soft_skills"]
+            ),
+            projects=json.dumps(
+                data["projects"]
             ),
             strengths=json.dumps(
-              analysis.strengths
+                data["strengths"]
             ),
             weaknesses=json.dumps(
-              analysis.weaknesses
+                data["weaknesses"]
             ),
             missing_skills=json.dumps(
-                analysis.missing_skills
+                data["missing_skills"]
             ),
             recommended_topics=json.dumps(
-                analysis.recommended_topics
-            ),          
-
+                data["recommended_topics"]
+            ),
         )
-    
+
     def get_history(
-            self,
-            db,
-            user_id: int,
+        self,
+        db,
+        user_id: int,
     ):
         return resume_repository.get_history(
             db,
             user_id,
         )
-    
+
     def get_analysis(
-            self,
-            db,
-            analysis_id: int,
-            user_id: int,
+        self,
+        db,
+        analysis_id: int,
+        user_id: int,
     ):
         return resume_repository.get_by_id(
             db,
             analysis_id,
-            user_id
+            user_id,
         )
-    
+
     def generate_pdf(
-    self,
-    db,
-    analysis_id: int,
-    user_id: int,
+        self,
+        db,
+        analysis_id: int,
+        user_id: int,
     ):
         analysis = resume_repository.get_by_id(
             db,
@@ -167,5 +170,5 @@ class ResumeService:
             analysis,
         )
 
- 
+
 resume_service = ResumeService()

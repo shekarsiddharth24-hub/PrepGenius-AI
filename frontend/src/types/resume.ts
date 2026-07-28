@@ -1,25 +1,55 @@
+export interface ResumeSkill {
+  skill: string;
+  reason: string | null;
+}
+
+export interface ResumeSoftSkill {
+  text: string;
+  evidence: string | null;
+}
+
 export interface ResumeProject {
   name: string;
   description: string | null;
-  tech_stack: string[];
+  tech_stack: ResumeSkill[];
+}
+
+export interface ResumeStrength {
+  text: string;
+  evidence: string;
+}
+
+export interface ResumeWeakness {
+  text: string;
+  evidence: string;
+}
+
+export interface ResumeMissingSkill {
+  skill: string;
+  reason: string;
+}
+
+export interface RecommendedTopic {
+  topic: string;
+  reason: string;
 }
 
 export interface ResumeAnalysis {
   resume_score: number;
 
-  technical_skills: string[];
+  technical_skills: ResumeSkill[];
 
-  soft_skills: string[];
+  soft_skills: ResumeSoftSkill[];
 
   projects: ResumeProject[];
 
-  strengths: string[];
+  strengths: ResumeStrength[];
 
-  weaknesses: string[];
+  weaknesses: ResumeWeakness[];
 
-  missing_skills: string[];
+  missing_skills: ResumeMissingSkill[];
 
-  recommended_topics: string[];
+  recommended_topics: RecommendedTopic[];
 }
 
 export interface ResumeHistoryItem {
