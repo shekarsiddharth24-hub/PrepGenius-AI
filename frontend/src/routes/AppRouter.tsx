@@ -4,6 +4,7 @@ import DashboardLayout from "../components/layout/DashboardLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
 import LoginPage from "../pages/auth/LoginPage";
+import ResumeAnalysisDetailPage from "../pages/resume/ResumeAnalysisDetailPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 
 import DashboardPage from "../pages/dashboard/DashboardPage";
@@ -23,48 +24,53 @@ import AuroraBackground from "../components/ui/AuroraBackground";
 export default function AppRouter() {
   return (
     <BrowserRouter>
-    <AuroraBackground>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+      <AuroraBackground>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
-        {/* Protected Routes */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/dashboard" element={<DashboardPage />} />
+          {/* Protected Routes */}
+          <Route
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/dashboard" element={<DashboardPage />} />
 
-          <Route path="/interview" element={<InterviewLayout />}>
-            <Route index element={<InterviewSetupPage />} />
-            <Route path="session" element={<InterviewSessionPage />} />
-            <Route path="result" element={<InterviewResultPage />} />
+            <Route path="/interview" element={<InterviewLayout />}>
+              <Route index element={<InterviewSetupPage />} />
+              <Route path="session" element={<InterviewSessionPage />} />
+              <Route path="result" element={<InterviewResultPage />} />
+            </Route>
+
+            <Route path="/history" element={<HistoryPage />} />
+
+            <Route
+              path="/history/:id"
+              element={<InterviewDetailsPage />}
+            />
+
+            <Route
+              path="/resume"
+              element={<ResumeAnalyzerPage />}
+            />
+
+            <Route
+              path="/resume/history"
+              element={<ResumeHistoryPage />}
+            />
+
+            <Route
+              path="/resume/history/:id"
+              element={<ResumeAnalysisDetailPage />}
+            />
+
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
-
-          <Route path="/history" element={<HistoryPage />} />
-
-          <Route
-            path="/history/:id"
-            element={<InterviewDetailsPage />}
-          />
-
-          <Route
-            path="/resume"
-            element={<ResumeAnalyzerPage />}
-          />
-
-          <Route
-            path="/resume/history"
-            element={<ResumeHistoryPage />}
-          />
-
-          <Route path="/profile" element={<ProfilePage />} />
-        </Route>
-      </Routes>
+        </Routes>
       </AuroraBackground>
     </BrowserRouter>
   );

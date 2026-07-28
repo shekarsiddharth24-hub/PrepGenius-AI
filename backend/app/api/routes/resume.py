@@ -4,6 +4,7 @@ from fastapi import File
 from fastapi import HTTPException
 from fastapi import Form
 from fastapi import Depends
+from fastapi.responses import StreamingResponse
 
 from sqlalchemy.orm import Session
 
@@ -17,16 +18,13 @@ from app.schemas.resume_history import (
     ResumeHistoryResponse,
     ResumeDetailResponse,
 )
-from app.services.resume_service import resume_service
 
-from fastapi.responses import StreamingResponse
+from app.services.resume_service import resume_service
 
 router = APIRouter(
     prefix="/resume",
     tags=["Resume"],
 )
-
-
 
 
 @router.post(
@@ -64,7 +62,6 @@ async def upload_resume(
         return analysis
 
     except ValueError as e:
-        print(e)
         raise HTTPException(
             status_code=400,
             detail=str(e),
@@ -75,7 +72,7 @@ async def upload_resume(
             status_code=500,
             detail=f"Internal Server Error while analyzing resume: {str(e)}",
         )
-    
+
 
 @router.get(
     "/history",
@@ -116,18 +113,23 @@ def get_resume_analysis(
             detail="Resume analysis not found",
         )
 
+    parsed = analysis.parsed_analysis
+
     return ResumeDetailResponse(
         id=analysis.id,
         filename=analysis.filename,
-        resume_score=analysis.resume_score,
-        technical_skills=analysis.technical_skills_list,
-        soft_skills=analysis.soft_skills_list,
-        strengths=analysis.strengths_list,
-        weaknesses=analysis.weaknesses_list,
-        missing_skills=analysis.missing_skills_list,
-        recommended_topics=analysis.recommended_topics_list,
         created_at=analysis.created_at,
+
+        resume_score=parsed.resume_score,
+        technical_skills=parsed.technical_skills,
+        soft_skills=parsed.soft_skills,
+        projects=parsed.projects,
+        strengths=parsed.strengths,
+        weaknesses=parsed.weaknesses,
+        missing_skills=parsed.missing_skills,
+        recommended_topics=parsed.recommended_topics,
     )
+
 
 @router.get(
     "/{analysis_id}/pdf",
@@ -153,7 +155,8 @@ def download_resume_pdf(
         pdf,
         media_type="application/pdf",
         headers={
-            "Content-Disposition":
+            "Content-Disposition": (
                 f'attachment; filename="resume_analysis_{analysis_id}.pdf"'
+            ),
         },
     )

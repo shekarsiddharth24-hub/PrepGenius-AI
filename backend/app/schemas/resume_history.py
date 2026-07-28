@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from app.schemas.resume import ResumeAnalysisResponse
+
 
 class ResumeHistoryItem(BaseModel):
     id: int
@@ -19,26 +21,13 @@ class ResumeHistoryItem(BaseModel):
 class ResumeHistoryResponse(BaseModel):
     items: list[ResumeHistoryItem]
 
-class ResumeDetailResponse(BaseModel):
+
+class ResumeDetailResponse(ResumeAnalysisResponse):
     id: int
 
     filename: str
 
-    resume_score: int
-
-    technical_skills: list[str]
-
-    soft_skills: list[str]
-
-    strengths: list[str]
-
-    weaknesses: list[str]
-
-    missing_skills: list[str]
-
-    recommended_topics: list[str]
-
     created_at: datetime
 
-    class Congig:
-        from_attributes= True
+    class Config:
+        from_attributes = True

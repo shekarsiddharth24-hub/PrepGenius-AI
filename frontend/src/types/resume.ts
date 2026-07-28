@@ -62,3 +62,25 @@ export interface ResumeHistoryItem {
 export interface ResumeHistoryResponse {
   items: ResumeHistoryItem[];
 }
+
+export interface ResumeDetailResponse {
+  id: number;
+
+  filename: string;
+
+  resume_score: number;
+
+  technical_skills: string[];
+
+  soft_skills: string[];
+
+  strengths: string[];
+
+  weaknesses: string[];
+
+  missing_skills: string[];
+
+  recommended_topics: string[];
+
+  created_at: string;
+}

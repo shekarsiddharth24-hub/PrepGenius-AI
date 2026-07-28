@@ -43,6 +43,18 @@ export async function getResumeHistory(): Promise<ResumeHistoryResponse> {
   return response.data;
 }
 
+export async function getResumeAnalysis(
+  analysisId: number,
+): Promise<ResumeAnalysis> {
+
+  const response = await api.get<ResumeAnalysis>(
+    `/resume/${analysisId}`,
+  );
+
+  return response.data;
+
+}
+
 /**
  * Download Resume Analysis PDF
  */

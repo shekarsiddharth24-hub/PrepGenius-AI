@@ -177,16 +177,8 @@ const ProjectsCard = ({
                       {project.name}
                     </h3>
 
-                    <p
-                      className="
-                        mt-2
-                        leading-7
-                        text-slate-400
-                      "
-                    >
-                      {project.description ??
-                        "No description available."}
-                    </p>
+                   
+                      
                   </div>
                 </div>
 

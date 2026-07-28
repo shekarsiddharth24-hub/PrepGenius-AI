@@ -1,5 +1,6 @@
 import { FileSearch } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 import ResumeHistoryCard from "./ResumeHistoryCard";
 
@@ -9,11 +10,9 @@ import { downloadResumePDF } from "../../api/resume";
 
 import GlassPanel from "../ui/GlassPanel";
 
-
 interface Props {
   items: ResumeHistoryItem[];
 }
-
 
 const container = {
   hidden: {},
@@ -24,7 +23,6 @@ const container = {
     },
   },
 };
-
 
 const itemAnimation = {
   hidden: {
@@ -38,12 +36,11 @@ const itemAnimation = {
   },
 };
 
-
-
 const ResumeHistoryList = ({
   items,
 }: Props) => {
 
+  const navigate = useNavigate();
 
   const handleExport = async (
     id: number,
@@ -53,18 +50,24 @@ const ResumeHistoryList = ({
 
       await downloadResumePDF(id);
 
-    } catch(error){
+    } catch (error) {
 
       console.error(
         "Failed to download PDF",
-        error
+        error,
       );
 
     }
 
   };
 
+  const handleView = (
+    id: number,
+  ) => {
 
+    navigate(`/resume/history/${id}`);
+
+  };
 
   if (items.length === 0) {
 
@@ -76,68 +79,51 @@ const ResumeHistoryList = ({
           flex-col
           items-center
           justify-center
-
           p-10
-
           text-center
         "
       >
 
         <motion.div
-
           initial={{
-            opacity:0,
-            scale:0.8,
+            opacity: 0,
+            scale: 0.8,
           }}
-
           animate={{
-            opacity:1,
-            scale:1,
+            opacity: 1,
+            scale: 1,
           }}
-
           className="
             flex
             h-16
             w-16
             items-center
             justify-center
-
             rounded-2xl
-
             bg-cyan-500/10
-
             text-cyan-300
           "
         >
 
-          <FileSearch size={32}/>
+          <FileSearch size={32} />
 
         </motion.div>
-
-
 
         <h3
           className="
             mt-5
-
             text-xl
-
             font-semibold
-
             text-white
           "
         >
           No Resume Analysis Yet
         </h3>
 
-
-
         <p
           className="
             mt-2
-
             max-w-md
-
             text-slate-400
           "
         >
@@ -145,60 +131,44 @@ const ResumeHistoryList = ({
           feedback and improvement suggestions.
         </p>
 
-
       </GlassPanel>
 
     );
 
   }
 
-
-
   return (
 
     <motion.div
-
       variants={container}
-
       initial="hidden"
-
       animate="show"
-
       className="
         space-y-5
       "
     >
 
-      {
-        items.map((item)=>(
+      {items.map((item) => (
 
-          <motion.div
+        <motion.div
+          key={item.id}
+          variants={itemAnimation}
+        >
 
-            key={item.id}
+          <ResumeHistoryCard
+            item={item}
+            onExport={handleExport}
+            onView={handleView}
+          />
 
-            variants={itemAnimation}
+        </motion.div>
 
-          >
-
-            <ResumeHistoryCard
-
-              item={item}
-
-              onExport={handleExport}
-
-            />
-
-          </motion.div>
-
-        ))
-      }
-
+      ))}
 
     </motion.div>
 
   );
 
 };
-
 
 export default ResumeHistoryList;
