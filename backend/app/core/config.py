@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings,SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -10,7 +10,16 @@ class Settings(BaseSettings):
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
-    MODEL_NAME: str = "llama3.1:8b"
+    # Models
+    QUESTION_MODEL: str = "qwen3:8b"
+
+    ANSWER_MODEL: str = "qwen3:8b"
+
+    EVALUATION_MODEL: str = "qwen3:14b"
+
+    RESUME_MODEL: str = "qwen3:14b"
+
+    CHAT_MODEL: str = "qwen3:8b"
 
     OLLAMA_URL: str = "http://localhost:11434"
 
@@ -18,10 +27,9 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "sqlite:///./prepgenius.db"
 
-
-    model_config=SettingsConfigDict(
+    model_config = SettingsConfigDict(
         env_file=".env",
-        extra="ignore"
+        extra="ignore",
     )
 
 

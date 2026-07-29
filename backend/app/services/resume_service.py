@@ -2,6 +2,7 @@ from fastapi import UploadFile
 from fastapi.encoders import jsonable_encoder
 import json
 
+from app.core.config import settings
 from app.utils.pdf_parser import (
     extract_text_from_pdf,
     clean_text,
@@ -71,14 +72,14 @@ class ResumeService:
         resume_text: str,
         target_role: str,
     ):
-
         prompt = build_resume_prompt(
             resume_text,
             target_role,
         )
 
         response = ollama.generate(
-            prompt,
+            prompt=prompt,
+            model=settings.RESUME_MODEL,
         )
 
         response = (
@@ -98,7 +99,6 @@ class ResumeService:
         filename: str,
         analysis: ResumeAnalysisResponse,
     ):
-        # Convert all nested Pydantic models into plain Python dicts/lists
         data = jsonable_encoder(analysis)
 
         return resume_repository.create(

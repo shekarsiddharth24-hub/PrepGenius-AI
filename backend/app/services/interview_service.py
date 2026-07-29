@@ -1,4 +1,5 @@
 from app.ai.ollama_service import ollama
+from app.core.config import settings
 from app.core.logging import logger
 
 from app.prompts.question_prompt import (
@@ -47,7 +48,10 @@ class InterviewService:
                 difficulty,
             )
 
-        return ollama.generate(prompt)
+        return ollama.generate(
+            prompt=prompt,
+            model=settings.QUESTION_MODEL,
+        )
 
     def generate_ideal_answer(
         self,
@@ -57,7 +61,10 @@ class InterviewService:
 
         prompt = build_answer_prompt(question)
 
-        return ollama.generate(prompt)
+        return ollama.generate(
+            prompt=prompt,
+            model=settings.ANSWER_MODEL,
+        )
 
     def save_interview(
         self,
