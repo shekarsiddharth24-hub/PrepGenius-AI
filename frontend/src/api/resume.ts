@@ -2,6 +2,7 @@ import api from "./axios";
 
 import type {
   ResumeAnalysis,
+  ResumeDetailResponse,
   ResumeHistoryResponse,
 } from "../types/resume";
 
@@ -45,9 +46,9 @@ export async function getResumeHistory(): Promise<ResumeHistoryResponse> {
 
 export async function getResumeAnalysis(
   analysisId: number,
-): Promise<ResumeAnalysis> {
+): Promise<ResumeDetailResponse> {
 
-  const response = await api.get<ResumeAnalysis>(
+  const response = await api.get<ResumeDetailResponse>(
     `/resume/${analysisId}`,
   );
 

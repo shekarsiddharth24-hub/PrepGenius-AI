@@ -1,4 +1,7 @@
 export const CODE_TEMPLATES: Record<string, string> = {
+  sql: `-- Write your SQL query here
+`,
+
   python: `def solve():
 
     pass

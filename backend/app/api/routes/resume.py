@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from fastapi import Form
 from fastapi import Depends
 from fastapi.responses import StreamingResponse
+from fastapi.concurrency import run_in_threadpool
 
 from sqlalchemy.orm import Session
 
@@ -12,6 +13,9 @@ from app.database.database import get_db
 from app.core.auth import get_current_user
 
 from app.models.user import User
+from app.core.roles import TargetRole
+from app.core.exceptions import ResumeAnalysisError
+from app.core.logging import logger
 
 from app.schemas.resume import ResumeAnalysisResponse
 from app.schemas.resume_history import (
@@ -33,7 +37,7 @@ router = APIRouter(
 )
 async def upload_resume(
     file: UploadFile = File(...),
-    target_role: str = Form(...),
+    target_role: TargetRole = Form(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -45,13 +49,17 @@ async def upload_resume(
         resume_text = await resume_service.extract_resume_text(file)
 
         # Analyze the resume using Ollama
-        analysis = resume_service.analyze_resume(
+        # (blocking, can take minutes -> run in a worker thread so the
+        # event loop keeps serving other requests)
+        analysis = await run_in_threadpool(
+            resume_service.analyze_resume,
             resume_text,
-            target_role,
+            target_role.value,
         )
 
         # Save the analysis to the database
-        resume_service.save_analysis(
+        await run_in_threadpool(
+            resume_service.save_analysis,
             db=db,
             user_id=current_user.id,
             filename=file.filename or "resume.pdf",
@@ -67,10 +75,18 @@ async def upload_resume(
             detail=str(e),
         )
 
-    except Exception as e:
+    except ResumeAnalysisError as e:
+        logger.warning("Resume analysis failed: %s", e)
+        raise HTTPException(
+            status_code=502,
+            detail="The AI could not analyze this resume. Please try again.",
+        )
+
+    except Exception:
+        logger.exception("Unexpected error while analyzing resume")
         raise HTTPException(
             status_code=500,
-            detail=f"Internal Server Error while analyzing resume: {str(e)}",
+            detail="Internal server error while analyzing resume.",
         )
 
 

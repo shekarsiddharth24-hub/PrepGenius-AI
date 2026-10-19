@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import Literal
 from typing import Optional
@@ -11,7 +11,11 @@ class EvaluationRequest(BaseModel):
     topic: str | None = None
     difficulty: str
     question: str
-    candidate_answer: str
+    candidate_answer: str = Field(..., min_length=1, max_length=20000)
+
+    # "code" for coding answers (judged without embedding similarity)
+    answer_type: Literal["text", "code"] = "text"
+    language: str | None = Field(default=None, max_length=30)
 
 
 class EvaluationResponse(BaseModel):

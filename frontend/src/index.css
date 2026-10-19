@@ -1,2 +1,124 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------- */
+/* Design tokens — Tailwind v4 theme layer                           */
+/* ---------------------------------------------------------------- */
+@theme {
+  /* Typography */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Brand accent scale — cyan/violet remain the identity, but now named */
+  --color-accent-50: #ecfeff;
+  --color-accent-200: #a5f3fc;
+  --color-accent-300: #67e8f9;
+  --color-accent-400: #22d3ee;
+  --color-accent-500: #06b6d4;
+  --color-accent-600: #0891b2;
+
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+
+  /* Semantic status colors (backs the badge system) */
+  --color-success-300: #6ee7b7;
+  --color-success-400: #34d399;
+  --color-success-500: #10b981;
+
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+
+  --color-danger-300: #fca5a5;
+  --color-danger-400: #f87171;
+  --color-danger-500: #ef4444;
+
+  /* Surface tokens for the glass system */
+  --color-surface-base: #050816;
+  --color-surface-raised: #0b1022;
+
+  /* Elevation shadows */
+  --shadow-glow-accent: 0 0 40px rgba(34, 211, 238, 0.15);
+  --shadow-glow-brand: 0 0 40px rgba(139, 92, 246, 0.15);
+}
+
+/* ---------------------------------------------------------------- */
+/* Base layer                                                        */
+/* ---------------------------------------------------------------- */
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-surface-base);
+    color: rgb(226 232 240); /* slate-200 */
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background: rgba(34, 211, 238, 0.25);
+    color: #fff;
+  }
+
+  /* Slim, glass-consistent scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(34, 211, 238, 0.3);
+    background-clip: padding-box;
+  }
+}
+
+/* ---------------------------------------------------------------- */
+/* Reusable utilities                                                */
+/* ---------------------------------------------------------------- */
+@layer utilities {
+  .text-gradient {
+    background-image: linear-gradient(
+      120deg,
+      #fff 0%,
+      #cbd5e1 50%,
+      #94a3b8 100%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  .text-gradient-accent {
+    background-image: linear-gradient(
+      120deg,
+      var(--color-accent-300) 0%,
+      var(--color-brand-400) 100%
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  /* Subtle film-grain, used as an overlay to keep large gradient
+     blurs from looking flat/banded on large panels. */
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+  }
+}

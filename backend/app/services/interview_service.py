@@ -23,6 +23,27 @@ from app.repositories.interview_repository import (
 )
 
 
+EXPLANATION_MARKER = "\nExplanation:"
+
+
+def split_ideal_answer(ideal_answer: str) -> tuple[str, str | None]:
+    """
+    Split "<code or query>\n\nExplanation:\n<text>" into its two parts.
+
+    Theory answers have no marker and are returned unchanged.
+    """
+
+    index = ideal_answer.find(EXPLANATION_MARKER)
+
+    if index == -1:
+        return ideal_answer.strip(), None
+
+    return (
+        ideal_answer[:index].strip(),
+        ideal_answer[index + len(EXPLANATION_MARKER):].strip(),
+    )
+
+
 class InterviewService:
 
     def generate_question(
@@ -51,6 +72,7 @@ class InterviewService:
         return ollama.generate(
             prompt=prompt,
             model=settings.QUESTION_MODEL,
+            max_tokens=settings.MAX_TOKENS_QUESTION,
         )
 
     def generate_ideal_answer(
@@ -64,6 +86,7 @@ class InterviewService:
         return ollama.generate(
             prompt=prompt,
             model=settings.ANSWER_MODEL,
+            max_tokens=settings.MAX_TOKENS_ANSWER,
         )
 
     def save_interview(
@@ -123,8 +146,14 @@ class InterviewService:
         interview_type: str,
         question: str,
         candidate_answer: str,
+        answer_type: str = "text",
+        language: str | None = None,
     ):
-        logger.info("Evaluating candidate answer")
+        logger.info(
+            f"Evaluating candidate answer | "
+            f"type={interview_type}, "
+            f"answer_type={answer_type}"
+        )
 
         if interview_type == "behavioral":
 
@@ -136,16 +165,38 @@ class InterviewService:
             semantic_score = None
             ideal_answer = None
 
+        elif answer_type == "code":
+
+            # Reference solution is shown to the user and used as a guide,
+            # but code is judged on correctness, complexity and edge cases.
+            # No embedding similarity score for code.
+            ideal_answer = self.generate_ideal_answer(
+                question,
+            )
+
+            semantic_score = None
+
+            feedback = evaluation_service.code_feedback(
+                question,
+                ideal_answer,
+                candidate_answer,
+                language,
+            )
+
         else:
 
             ideal_answer = self.generate_ideal_answer(
                 question,
             )
 
+            # Compare against the query/answer part only, so the added
+            # explanation text does not lower the similarity score.
+            reference_part, _ = split_ideal_answer(ideal_answer)
+
             semantic_score = (
                 evaluation_service.semantic_score(
                     candidate_answer,
-                    ideal_answer,
+                    reference_part,
                 )
             )
 

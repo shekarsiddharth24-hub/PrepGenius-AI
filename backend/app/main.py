@@ -1,7 +1,13 @@
 from dotenv import load_dotenv
 load_dotenv()
 
+import threading
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
+
+from app.ai.ollama_service import ollama
+from app.core.config import settings
 
 from app.api.test import router
 from app.api.interview import router as interview_router
@@ -15,9 +21,31 @@ from app.core.exceptions import global_exception_handler
 
 from fastapi.middleware.cors import CORSMiddleware
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Load the Ollama models in the background so the first user request
+    # is not slow. Never blocks startup and never fails if Ollama is down.
+    if settings.WARMUP_ON_STARTUP:
+        threading.Thread(
+            target=ollama.warmup,
+            args=(
+                [
+                    settings.QUESTION_MODEL,
+                    settings.ANSWER_MODEL,
+                    settings.EVALUATION_MODEL,
+                    settings.RESUME_MODEL,
+                ],
+            ),
+            daemon=True,
+        ).start()
+
+    yield
+
+
 app = FastAPI(
     title="PrepGenius AI API",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(

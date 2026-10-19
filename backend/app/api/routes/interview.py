@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.schemas.interview import (
@@ -22,6 +22,7 @@ from app.repositories.interview_repository import (
 from app.database.database import get_db
 from app.core.auth import get_current_user
 from app.models.user import User
+from app.core.exceptions import EvaluationParseError
 
 
 router = APIRouter(
@@ -79,11 +80,21 @@ def evaluate_answer(
     current_user: User = Depends(get_current_user),
 ):
 
-    result = interview_service.evaluate_answer(
-        request.interview_type,
-        request.question,
-        request.candidate_answer,
-    )
+    try:
+        result = interview_service.evaluate_answer(
+            request.interview_type,
+            request.question,
+            request.candidate_answer,
+            answer_type=request.answer_type,
+            language=request.language,
+        )
+
+    except EvaluationParseError:
+        # Nothing is saved: a failed evaluation must not become a 0 score
+        raise HTTPException(
+            status_code=502,
+            detail="The AI could not evaluate your answer. Please try again.",
+        )
 
     interview_service.save_interview(
         db=db,

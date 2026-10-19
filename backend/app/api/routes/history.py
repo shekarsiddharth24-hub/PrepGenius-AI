@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.auth import get_current_user
@@ -19,7 +20,7 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("")
 def history(
     db: Session = Depends(get_db),
     current_user: User = Depends(

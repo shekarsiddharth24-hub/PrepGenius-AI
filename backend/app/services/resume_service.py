@@ -1,4 +1,5 @@
 from fastapi import UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.encoders import jsonable_encoder
 import json
 
@@ -10,6 +11,11 @@ from app.utils.pdf_parser import (
 from app.prompts.resume_prompt import build_resume_prompt
 from app.ai.ollama_service import ollama
 from app.schemas.resume import ResumeAnalysisResponse
+from pydantic import ValidationError
+from app.core.exceptions import ResumeAnalysisError
+from app.core.logging import logger
+from app.prompts.role_config import ROLE_CONFIG
+from app.utils.json_parser import extract_json
 
 from app.repositories.resume_repository import resume_repository
 
@@ -19,6 +25,12 @@ from app.utils.pdf_generator import pdf_generator
 class ResumeService:
 
     MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+    # Cap resume text sent to the LLM (keeps prompts small and inference fast)
+    MAX_RESUME_CHARS = 8000
+
+    # Total attempts at getting valid JSON from the model
+    MAX_ATTEMPTS = 2
 
     ALLOWED_TYPES = {
         "application/pdf",
@@ -52,7 +64,9 @@ class ResumeService:
     ):
         file_bytes = await file.read()
 
-        text = extract_text_from_pdf(
+        # PDF parsing is synchronous and CPU-bound; keep it off the event loop
+        text = await run_in_threadpool(
+            extract_text_from_pdf,
             file_bytes,
         )
 
@@ -72,25 +86,48 @@ class ResumeService:
         resume_text: str,
         target_role: str,
     ):
+        if target_role not in ROLE_CONFIG:
+            raise ValueError(f"Unsupported target role: {target_role}")
+
+        if len(resume_text) > self.MAX_RESUME_CHARS:
+            logger.info(
+                "Truncating resume text from %d to %d characters",
+                len(resume_text),
+                self.MAX_RESUME_CHARS,
+            )
+            resume_text = resume_text[: self.MAX_RESUME_CHARS]
+
         prompt = build_resume_prompt(
             resume_text,
             target_role,
         )
 
-        response = ollama.generate(
-            prompt=prompt,
-            model=settings.RESUME_MODEL,
+        last_error: Exception | None = None
+
+        for attempt in range(1, self.MAX_ATTEMPTS + 1):
+            response = ollama.generate(
+                prompt=prompt,
+                model=settings.RESUME_MODEL,
+                max_tokens=settings.MAX_TOKENS_RESUME,
+            )
+
+            try:
+                analysis = extract_json(response)
+                return ResumeAnalysisResponse(**analysis)
+
+            except (ValueError, TypeError, ValidationError) as e:
+                # json.JSONDecodeError is a subclass of ValueError
+                last_error = e
+                logger.warning(
+                    "Resume analysis attempt %d/%d returned invalid output: %s",
+                    attempt,
+                    self.MAX_ATTEMPTS,
+                    e,
+                )
+
+        raise ResumeAnalysisError(
+            f"Model returned invalid output after {self.MAX_ATTEMPTS} attempts: {last_error}"
         )
-
-        response = (
-            response.replace("```json", "")
-            .replace("```", "")
-            .strip()
-        )
-
-        analysis = json.loads(response)
-
-        return ResumeAnalysisResponse(**analysis)
 
     def save_analysis(
         self,

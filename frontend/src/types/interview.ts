@@ -55,6 +55,11 @@ export interface EvaluationRequest {
   question: string;
 
   candidate_answer: string;
+
+  // "code" answers are judged without embedding similarity
+  answer_type?: "text" | "code";
+
+  language?: string;
 }
 
 export interface EvaluationResponse {

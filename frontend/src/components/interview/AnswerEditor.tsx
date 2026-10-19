@@ -1,4 +1,13 @@
-import { useEffect, useState, type ChangeEvent } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { Bot, Send } from "lucide-react";
@@ -8,9 +17,21 @@ import { evaluateAnswer } from "../../api/interview";
 import type { EvaluationRequest } from "../../types/interview";
 
 import GlassPanel from "../ui/GlassPanel";
-import MonacoCodeEditor from "./MonacoCodeEditor";
 import LanguageSelector from "./LanguageSelector";
 import { CODE_TEMPLATES } from "./CodeTemplates";
+import {
+  clearDraft,
+  draftKey,
+  loadDraft,
+  saveDraft,
+} from "../../utils/draft";
+
+// Monaco is large; load it only when a coding question is shown.
+const MonacoCodeEditor = lazy(
+  () => import("./MonacoCodeEditor")
+);
+
+const DRAFT_DEBOUNCE_MS = 500;
 
 interface Props {
   interview: {
@@ -36,31 +57,88 @@ export default function AnswerEditor({
   const [answer, setAnswer] =
     useState(CODE_TEMPLATES.python);
 
+  const [draftSaved, setDraftSaved] =
+    useState(false);
+
   /* ---------------------------
       Detect Coding Question
   ---------------------------- */
 
+  const topic = interview.topic?.toLowerCase();
+
+  // SQL is judged by the LLM like code (two correct queries can look
+  // very different), so it uses the code editor and the "code" path.
+  const isSqlInterview =
+    interview.interview_type ===
+      "technical" && topic === "sql";
+
   const isCodingInterview =
     interview.interview_type ===
       "technical" &&
-    interview.topic?.toLowerCase() ===
-      "dsa";
+    (topic === "dsa" || topic === "sql");
 
   /* ---------------------------
       Reset on New Question
   ---------------------------- */
 
+  const storageKey = useMemo(
+    () => draftKey(interview.question),
+    [interview.question]
+  );
+
+  const saveTimer = useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined);
+
+  // Restore a saved draft (if any), otherwise start fresh.
   useEffect(() => {
+    const draft = loadDraft(storageKey);
+
     if (isCodingInterview) {
-      setLanguage("python");
-      setAnswer(CODE_TEMPLATES.python);
+      const lang = isSqlInterview
+        ? "sql"
+        : draft?.language &&
+            draft.language !== "sql" &&
+            CODE_TEMPLATES[draft.language] !==
+              undefined
+          ? draft.language
+          : "python";
+
+      setLanguage(lang);
+      setAnswer(
+        draft?.answer ??
+          CODE_TEMPLATES[lang] ??
+          ""
+      );
     } else {
-      setAnswer("");
+      setAnswer(draft?.answer ?? "");
     }
+
+    setDraftSaved(false);
+
+    return () => clearTimeout(saveTimer.current);
   }, [
-    interview.question,
+    storageKey,
     isCodingInterview,
+    isSqlInterview,
   ]);
+
+  // Debounced save, triggered only by user edits (not by restores).
+  const persistDraft = useCallback(
+    (nextAnswer: string, nextLanguage?: string) => {
+      clearTimeout(saveTimer.current);
+
+      saveTimer.current = setTimeout(() => {
+        saveDraft(storageKey, {
+          answer: nextAnswer,
+          language: nextLanguage,
+        });
+
+        setDraftSaved(true);
+      }, DRAFT_DEBOUNCE_MS);
+    },
+    [storageKey]
+  );
 
   /* ---------------------------
       Language Change
@@ -69,10 +147,19 @@ export default function AnswerEditor({
   const handleLanguageChange = (
     lang: string
   ) => {
+    const template =
+      CODE_TEMPLATES[lang] ?? "";
+
     setLanguage(lang);
-    setAnswer(
-      CODE_TEMPLATES[lang] ?? ""
-    );
+    setAnswer(template);
+    persistDraft(template, lang);
+  };
+
+  const handleCodeChange = (
+    value: string
+  ) => {
+    setAnswer(value);
+    persistDraft(value, language);
   };
 
   /* ---------------------------
@@ -81,11 +168,26 @@ export default function AnswerEditor({
 
   const minimumCharacters = 100;
 
+  // For code, the starter template alone is not an answer.
   const canSubmit =
     isCodingInterview
-      ? answer.trim().length > 0
+      ? answer.trim().length > 0 &&
+        answer.trim() !==
+          (CODE_TEMPLATES[language] ?? "").trim()
       : answer.trim().length >=
         minimumCharacters;
+
+  /* ---------------------------
+      Counters
+  ---------------------------- */
+
+  const lineCount = answer.length
+    ? answer.split("\n").length
+    : 0;
+
+  const wordCount = answer.trim()
+    ? answer.trim().split(/\s+/).length
+    : 0;
 
   /* ---------------------------
       Mutation
@@ -97,11 +199,17 @@ export default function AnswerEditor({
     ) => evaluateAnswer(request),
 
     onSuccess: (result) => {
+      clearTimeout(saveTimer.current);
+      clearDraft(storageKey);
+
       navigate("/interview/result", {
         state: {
           result,
           interviewType:
             interview.interview_type,
+          answerType: isCodingInterview
+            ? "code"
+            : "text",
         },
       });
     },
@@ -126,6 +234,7 @@ export default function AnswerEditor({
     e: ChangeEvent<HTMLTextAreaElement>
   ) => {
     setAnswer(e.target.value);
+    persistDraft(e.target.value);
 
     e.target.style.height = "auto";
 
@@ -150,6 +259,14 @@ export default function AnswerEditor({
       question: interview.question,
 
       candidate_answer: answer,
+
+      answer_type: isCodingInterview
+        ? "code"
+        : "text",
+
+      language: isCodingInterview
+        ? language
+        : undefined,
     });
   };
 
@@ -218,7 +335,9 @@ export default function AnswerEditor({
                 text-slate-400
               "
             >
-              {isCodingInterview
+              {isSqlInterview
+                ? "Write your SQL query below. It is judged on correctness, not on how closely it matches a reference query."
+                : isCodingInterview
                 ? "Write your solution below. Choose your preferred programming language."
                 : "Explain your approach clearly. AI will evaluate your response."}
             </p>
@@ -234,18 +353,40 @@ export default function AnswerEditor({
         {isCodingInterview ? (
           <div className="space-y-4">
 
+            {!isSqlInterview && (
             <LanguageSelector
               language={language}
               onChange={
                 handleLanguageChange
               }
             />
+            )}
 
-            <MonacoCodeEditor
-              language={language}
-              value={answer}
-              onChange={setAnswer}
-            />
+            <Suspense
+              fallback={
+                <div
+                  className="
+                    flex
+                    h-[500px]
+                    items-center
+                    justify-center
+                    rounded-2xl
+                    border
+                    border-white/10
+                    bg-white/5
+                    text-slate-400
+                  "
+                >
+                  Loading editor...
+                </div>
+              }
+            >
+              <MonacoCodeEditor
+                language={language}
+                value={answer}
+                onChange={handleCodeChange}
+              />
+            </Suspense>
 
           </div>
         ) : (
@@ -307,6 +448,11 @@ export default function AnswerEditor({
               "
             >
               Language: {language}
+              {" · "}
+              {lineCount} {lineCount === 1 ? "line" : "lines"}
+              {" · "}
+              {answer.length} characters
+              {draftSaved && " · Draft saved"}
             </div>
           ) : (
             <div
@@ -325,9 +471,12 @@ export default function AnswerEditor({
                 }
               `}
             >
+              {wordCount} words
+              {" · "}
               {answer.length} /{" "}
               {minimumCharacters}
               {" "}minimum characters
+              {draftSaved && " · Draft saved"}
             </div>
           )}
 

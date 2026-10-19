@@ -23,6 +23,23 @@ class Settings(BaseSettings):
 
     OLLAMA_URL: str = "http://localhost:11434"
 
+    # Speed / behaviour of Ollama requests
+    # qwen3 "thinking" adds a lot of hidden tokens; keep it off for fast,
+    # structured answers.
+    OLLAMA_THINK: bool = False
+
+    # How long Ollama keeps a model loaded after the last request
+    OLLAMA_KEEP_ALIVE: str = "30m"
+
+    # Load models into memory when the backend starts
+    WARMUP_ON_STARTUP: bool = True
+
+    # Max tokens generated per task (caps rambling and long waits)
+    MAX_TOKENS_QUESTION: int = 600
+    MAX_TOKENS_ANSWER: int = 1200
+    MAX_TOKENS_EVALUATION: int = 1200
+    MAX_TOKENS_RESUME: int = 3500
+
     HF_TOKEN: str | None = None
 
     DATABASE_URL: str = "sqlite:///./prepgenius.db"

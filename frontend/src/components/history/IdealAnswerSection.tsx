@@ -7,9 +7,26 @@ interface Props {
   answer: string;
 }
 
+// Coding / SQL ideal answers look like "<code>\n\nExplanation:\n<text>".
+// Theory answers have no marker and are shown as plain text.
+function splitAnswer(answer: string) {
+  const match = answer.match(/\n\s*Explanation:\s*/i);
+
+  if (!match || match.index === undefined) {
+    return { code: null, text: answer };
+  }
+
+  return {
+    code: answer.slice(0, match.index).trim(),
+    text: answer.slice(match.index + match[0].length).trim(),
+  };
+}
+
 export default function IdealAnswerSection({
   answer,
 }: Props) {
+  const { code, text } = splitAnswer(answer);
+
   return (
     <GlassPanel className="group relative overflow-hidden p-6">
 
@@ -69,6 +86,32 @@ export default function IdealAnswerSection({
             p-5
           "
         >
+          {code && (
+            <pre
+              className="
+                mb-5
+                overflow-x-auto
+                rounded-xl
+                border
+                border-white/10
+                bg-black/40
+                p-4
+                font-mono
+                text-sm
+                leading-6
+                text-cyan-200
+              "
+            >
+              <code>{code}</code>
+            </pre>
+          )}
+
+          {code && (
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-amber-300">
+              Explanation
+            </p>
+          )}
+
           <p
             className="
               whitespace-pre-wrap
@@ -76,7 +119,7 @@ export default function IdealAnswerSection({
               text-slate-300
             "
           >
-            {answer}
+            {text}
           </p>
         </motion.div>
 

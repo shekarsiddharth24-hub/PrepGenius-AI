@@ -47,39 +47,48 @@ This applies to DSA questions that explicitly ask the candidate to:
 - Complete the algorithm
 
 Requirements:
-- Return ONLY source code.
-- Do NOT include explanations.
-- Do NOT include markdown.
-- Do NOT wrap the code in triple backticks.
-- The solution should be complete and correct.
+- Respond in EXACTLY this two-part format:
+
+<the complete source code>
+
+Explanation:
+<short theory explanation>
+
+- Part 1 is ONLY the source code. The solution must be complete and correct.
 - Use meaningful variable names.
 - Include comments only if they improve readability.
 - Follow industry-standard coding practices.
 - Optimize the solution appropriately for the requested difficulty.
 - If a programming language is mentioned in the question, use that language.
 - Otherwise, use Python.
+- Part 2 starts on its own line with the word "Explanation:" followed by
+  a SHORT explanation (3 to 5 sentences, about 50-90 words) covering:
+  the approach / key idea, why it works, and the time and space
+  complexity (for example "Time O(n), Space O(n)").
+- Do NOT wrap the code in triple backticks.
 
 ==================================================
 IF THE QUESTION EXPECTS A SQL QUERY
 ==================================================
 
 Requirements:
-- Return ONLY the SQL query.
+- Respond in EXACTLY this two-part format:
+
+<the SQL query>
+
+Explanation:
+<short theory explanation>
+
+- Part 1 is ONLY the SQL query.
 - Use ONLY the schema provided in the interview question.
 - Never invent tables or columns.
-- Do NOT include explanations.
-- Do NOT use markdown.
-- Do NOT wrap the SQL in triple backticks.
 - Write a syntactically correct and efficient query.
-
-==================================================
-IF THE QUESTION EXPECTS THEORY + SQL
-==================================================
-
-Requirements:
-- First provide a concise explanation (75–150 words).
-- Then provide the SQL query.
-- Use only the provided schema.
+- Part 2 starts on its own line with the word "Explanation:" followed by
+  a SHORT explanation (2 to 4 sentences, about 40-80 words) of how the
+  query works: which tables are joined or filtered, which clauses
+  (JOIN, GROUP BY, HAVING, window functions, subqueries...) are used
+  and why.
+- Do NOT wrap the SQL in triple backticks.
 - Do NOT use markdown.
 
 ==================================================
@@ -87,7 +96,8 @@ GENERAL RULES
 ==================================================
 
 - The response format must exactly match what the interview question requests.
-- Never mix explanation with code unless the question explicitly requests both.
+- Theory questions get a written answer only. Coding and SQL questions
+  get the code or query followed by the "Explanation:" section, as above.
 - Never add greetings.
 - Never add numbering.
 - Never add markdown.

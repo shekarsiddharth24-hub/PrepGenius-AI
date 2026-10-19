@@ -1,4 +1,63 @@
-def build_question_prompt(topic: str, difficulty: str) -> str:
+import random
+
+# Topics that must produce EITHER a theory question OR a SQL query
+# question, never both in one question.
+DBMS_TOPIC = "dbms"
+
+
+def _topic_rule(topic: str, kind: str | None) -> str:
+    """
+    Extra rule injected into the prompt for DBMS.
+
+    The theory / query choice is made here in code (50/50) instead of
+    being left to the model, so the mix is predictable and the two kinds
+    never get combined into a single question.
+    """
+
+    if (topic or "").strip().lower() != DBMS_TOPIC:
+        return ""
+
+    if kind not in ("theory", "query"):
+        kind = random.choice(["theory", "query"])
+
+    if kind == "query":
+        return """
+==================================================
+DBMS - THIS QUESTION MUST BE A SQL QUERY QUESTION
+==================================================
+
+This rule overrides every other rule about DBMS in this prompt.
+
+- Generate a SQL QUERY question ONLY. It is NOT a theory question.
+- Do NOT ask the candidate to explain, define, compare or justify anything.
+- ALWAYS provide the complete schema (table names, columns, primary keys,
+  foreign keys when applicable) inside the question.
+- Clearly instruct the candidate to write a SQL query.
+- Never expect the candidate to assume a schema.
+"""
+
+    return """
+==================================================
+DBMS - THIS QUESTION MUST BE A THEORY QUESTION
+==================================================
+
+This rule overrides every other rule about DBMS in this prompt.
+
+- Generate a conceptual THEORY question ONLY (normalization, ACID,
+  transactions, indexing, concurrency control, keys, joins as a concept...).
+- The expected answer is a written explanation.
+- Do NOT ask the candidate to write a SQL query or any code.
+- Do NOT include a schema or a table.
+"""
+
+
+def build_question_prompt(
+    topic: str,
+    difficulty: str,
+    kind: str | None = None,
+) -> str:
+    topic_rule = _topic_rule(topic, kind)
+
     return f"""
 You are a Senior Software Engineer conducting a technical interview.
 
@@ -15,12 +74,12 @@ General Requirements:
   - Theory → Written explanation only.
   - Coding → Source code only.
   - SQL Query → SQL query only.
-  - Theory + SQL → Explanation followed by SQL when explicitly requested.
+- A single question must NEVER ask for both an explanation and a SQL query.
 - Never leave the expected response ambiguous.
 - The question must be answerable using only a text response.
 - Do not ask for diagrams, screenshots, files, or external tools.
 - Match the requested difficulty level.
-
+{topic_rule}
 ==================================================
 THEORY TOPICS
 ==================================================
@@ -180,7 +239,7 @@ Topics such as:
 - Oracle
 - SQLite
 
-Generate either:
+Generate either (never both in the same question):
 
 A) Theory Question
 
@@ -237,5 +296,4 @@ OUTPUT RULES
   - Theory
   - Code
   - SQL Query
-  - Theory + SQL
 """

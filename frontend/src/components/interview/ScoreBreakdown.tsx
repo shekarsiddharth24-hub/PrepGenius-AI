@@ -8,13 +8,17 @@ import GlassTiltCard from "../ui/GlassTiltCard";
 interface Props {
   result: ScoreBreakdownResult;
   interviewType: "technical" | "behavioral";
+  answerType?: "text" | "code";
 }
 
 
 export default function ScoreBreakdown({
   result,
   interviewType,
+  answerType = "text",
 }: Props) {
+
+  const isCode = answerType === "code";
 
   const technicalMetrics = [
     {
@@ -22,15 +26,15 @@ export default function ScoreBreakdown({
       value: result.semantic_score,
     },
     {
-      label: "Technical",
+      label: isCode ? "Correctness" : "Technical",
       value: result.technical_score,
     },
     {
-      label: "Completeness",
+      label: isCode ? "Edge Cases" : "Completeness",
       value: result.completeness_score,
     },
     {
-      label: "Communication",
+      label: isCode ? "Code Quality" : "Communication",
       value: result.communication_score,
     },
   ];

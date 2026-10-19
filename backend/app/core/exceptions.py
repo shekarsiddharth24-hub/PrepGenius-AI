@@ -13,3 +13,11 @@ async def global_exception_handler(
             "detail": str(exc),
         },
     )
+
+
+class ResumeAnalysisError(Exception):
+    """Raised when the LLM output cannot be turned into a valid resume analysis."""
+
+
+class EvaluationParseError(Exception):
+    """Raised when the LLM evaluation cannot be turned into valid scores."""

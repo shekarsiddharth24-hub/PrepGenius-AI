@@ -1,5 +1,3 @@
-import json
-
 from app.ai.embedding_service import (
     embedding_service,
 )
@@ -7,6 +5,10 @@ from app.ai.embedding_service import (
 from app.ai.ollama_service import (
     ollama,
 )
+
+from app.core.config import settings
+from app.core.exceptions import EvaluationParseError
+from app.core.logging import logger
 
 from app.prompts.evaluation_prompt import (
     build_evaluation_prompt,
@@ -16,54 +18,133 @@ from app.prompts.hr_evaluation_prompt import (
     build_hr_evaluation_prompt,
 )
 
+from app.prompts.code_evaluation_prompt import (
+    build_code_evaluation_prompt,
+)
+
+from app.utils.json_parser import extract_json
+
+
+SCORE_KEYS = (
+    "technical_score",
+    "completeness_score",
+    "communication_score",
+    "professionalism_score",
+    "leadership_score",
+    "problem_solving_score",
+    "star_score",
+    "overall_score",
+)
+
+LIST_KEYS = (
+    "strengths",
+    "weaknesses",
+    "suggestions",
+)
+
 
 class EvaluationService:
 
-    def parse_json(
+    # Total attempts at getting a usable evaluation from the model
+    MAX_ATTEMPTS = 2
+
+    def normalize(
         self,
-        response: str,
-    ):
+        data: dict,
+    ) -> dict:
         """
-        Parse Ollama JSON response safely.
-        Handles markdown code blocks.
+        Clean up an LLM evaluation:
+        - scores become numbers clamped to 0-100
+        - non-numeric scores are dropped (callers fill defaults)
+        - strengths / weaknesses / suggestions become lists of strings
+
+        Raises ValueError if there is not a single usable score.
         """
 
-        response = response.strip()
+        result = dict(data)
 
-        # Remove markdown JSON wrapper if Ollama returns it
-        if response.startswith("```json"):
-            response = response.replace(
-                "```json",
-                "",
-                1,
+        found_score = False
+
+        for key in SCORE_KEYS:
+
+            if key not in result:
+                continue
+
+            value = result[key]
+
+            if isinstance(value, bool) or not isinstance(
+                value,
+                (int, float),
+            ):
+                # e.g. "85", None, "N/A" -> try a plain number, else drop
+                try:
+                    value = float(str(value).strip().rstrip("%"))
+                except (TypeError, ValueError):
+                    del result[key]
+                    continue
+
+            result[key] = max(0.0, min(100.0, float(value)))
+            found_score = True
+
+        if not found_score:
+            raise ValueError("Evaluation contained no valid scores.")
+
+        for key in LIST_KEYS:
+
+            value = result.get(key, [])
+
+            if isinstance(value, str):
+                value = [value]
+
+            elif not isinstance(value, list):
+                value = []
+
+            result[key] = [str(item) for item in value if item]
+
+        return result
+
+
+    def _evaluate(
+        self,
+        prompt: str,
+    ) -> dict:
+        """
+        Run an evaluation prompt on the evaluation model.
+
+        Retries once if the output is not usable JSON. Raises
+        EvaluationParseError if every attempt fails, so a broken
+        evaluation is never saved as a real result.
+        """
+
+        last_error: Exception | None = None
+
+        for attempt in range(1, self.MAX_ATTEMPTS + 1):
+
+            response = ollama.generate(
+                prompt,
+                model=settings.EVALUATION_MODEL,
+                temperature=0.2,
+                max_tokens=settings.MAX_TOKENS_EVALUATION,
             )
 
-        if response.endswith("```"):
-            response = response[:-3]
+            try:
+                return self.normalize(
+                    extract_json(response)
+                )
 
-        response = response.strip()
+            except ValueError as e:
+                last_error = e
+                logger.warning(
+                    "Evaluation attempt %d/%d returned unusable output: %s",
+                    attempt,
+                    self.MAX_ATTEMPTS,
+                    e,
+                )
 
-        try:
-            return json.loads(response)
-
-        except json.JSONDecodeError:
-            return {
-                "technical_score": None,
-                "completeness_score": None,
-                "communication_score": None,
-                "professionalism_score": None,
-                "leadership_score": None,
-                "problem_solving_score": None,
-                "star_score": None,
-                "overall_score": 0,
-                "strengths": [
-                    "Unable to parse AI response."
-                ],
-                "weaknesses": [],
-                "suggestions": [
-                    "Retry evaluation."
-                ],
-            }
+        raise EvaluationParseError(
+            f"Model returned unusable evaluation after "
+            f"{self.MAX_ATTEMPTS} attempts: {last_error}"
+        )
 
 
     def semantic_score(
@@ -96,11 +177,32 @@ class EvaluationService:
             candidate_answer,
         )
 
-        response = ollama.generate(prompt)
+        return self._evaluate(prompt)
 
-        return self.parse_json(
-            response
+
+    def code_feedback(
+        self,
+        question: str,
+        reference_solution: str,
+        candidate_code: str,
+        language: str | None = None,
+    ):
+        """
+        Evaluate a coding answer on correctness, complexity and edge cases.
+
+        Embedding similarity is deliberately NOT used for code: two correct
+        solutions can look very different, and a wrong solution can look
+        very similar to the reference.
+        """
+
+        prompt = build_code_evaluation_prompt(
+            question,
+            reference_solution,
+            candidate_code,
+            language,
         )
+
+        return self._evaluate(prompt)
 
 
     def hr_feedback(
@@ -114,11 +216,7 @@ class EvaluationService:
             candidate_answer,
         )
 
-        response = ollama.generate(prompt)
-
-        return self.parse_json(
-            response
-        )
+        return self._evaluate(prompt)
 
 
 evaluation_service = EvaluationService()

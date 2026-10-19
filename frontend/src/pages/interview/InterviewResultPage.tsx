@@ -19,6 +19,7 @@ export default function InterviewResultPage() {
     | {
         result: EvaluationResponse;
         interviewType: "technical" | "behavioral";
+        answerType?: "text" | "code";
       }
     | undefined;
 
@@ -26,7 +27,7 @@ export default function InterviewResultPage() {
     return <Navigate to="/interview" replace />;
   }
 
-  const { result, interviewType } = state;
+  const { result, interviewType, answerType } = state;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -35,6 +36,7 @@ export default function InterviewResultPage() {
       <ScoreBreakdown
         result={result}
         interviewType={interviewType}
+        answerType={answerType}
       />
 
       {interviewType === "technical" && result.ideal_answer && (

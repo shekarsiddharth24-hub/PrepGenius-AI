@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getAnalytics } from "../../api/dashboard";
 import { getHistory } from "../../api/history";
 
-import GlassPanel from "../../components/ui/GlassPanel";
+import ErrorState from "../../components/ui/ErrorState";
 
 import DashboardHeader from "../../components/dashboard/DashboardHeader";
 import AnalyticsGrid from "../../components/dashboard/AnalyticsGrid";
@@ -66,11 +66,14 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-7xl space-y-8">
         <DashboardHeader />
 
-        <GlassPanel className="p-6">
-          <p className="text-red-400">
-            Failed to load dashboard analytics.
-          </p>
-        </GlassPanel>
+        <ErrorState
+          title="Failed to load dashboard analytics"
+          description="Something interrupted the request. Check your connection and try again."
+          onRetry={() => {
+            analyticsQuery.refetch();
+            historyQuery.refetch();
+          }}
+        />
       </div>
     );
   }

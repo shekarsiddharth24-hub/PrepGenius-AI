@@ -38,8 +38,9 @@ class AnalyticsService:
         for interview in interviews:
 
             overall_scores.append(interview.overall_score or 0)
-            semantic_scores.append(interview.semantic_score or 0)
-            technical_scores.append(interview.technical_score or 0)
+            # Behavioral and code answers have no semantic score; skip them
+            if interview.semantic_score is not None:
+                semantic_scores.append(interview.semantic_score)
             communication_scores.append(interview.communication_score or 0)
 
             topic_scores[interview.topic].append(
@@ -51,6 +52,13 @@ class AnalyticsService:
 
             if interview_type == "technical":
                 technical_interviews.append(interview)
+
+                # Only technical interviews have a technical score.
+                # Behavioral rows are saved with a 0 placeholder (see
+                # InterviewService.evaluate_answer), so filtering on type
+                # as well as NULL keeps them out of the average.
+                if interview.technical_score is not None:
+                    technical_scores.append(interview.technical_score)
             else:
                 behavioral_interviews.append(interview)
 
@@ -131,14 +139,22 @@ class AnalyticsService:
 
             "weakest_topic": weakest_topic,
 
-            "average_semantic": round(
-                sum(semantic_scores) / len(semantic_scores),
-                2,
+            "average_semantic": (
+                round(
+                    sum(semantic_scores) / len(semantic_scores),
+                    2,
+                )
+                if semantic_scores
+                else 0
             ),
 
-            "average_technical": round(
-                sum(technical_scores) / len(technical_scores),
-                2,
+            "average_technical": (
+                round(
+                    sum(technical_scores) / len(technical_scores),
+                    2,
+                )
+                if technical_scores
+                else 0
             ),
 
             "average_communication": round(
