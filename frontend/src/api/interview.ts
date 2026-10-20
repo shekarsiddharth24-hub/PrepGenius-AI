@@ -23,7 +23,12 @@ export async function evaluateAnswer(
 ): Promise<EvaluationResponse> {
   const response = await api.post(
     "/interview/evaluate",
-    request
+    request,
+    {
+      // Two LLM calls (ideal answer + scoring), possibly with a cold model
+      // load and one retry; the 2 min default is too short.
+      timeout: 300000,
+    }
   );
 
   return response.data;

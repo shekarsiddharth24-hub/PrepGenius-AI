@@ -15,16 +15,6 @@ export async function analyzeResume(
   formData.append("file", file);
   formData.append("target_role", targetRole);
 
-  console.log("===== Resume Upload =====");
-  console.log("File:", file.name);
-  console.log("Type:", file.type);
-  console.log("Target Role:", targetRole);
-
-  for (const [key, value] of formData.entries()) {
-    console.log(key, value);
-  }
-
-
   const response = await api.post<ResumeAnalysis>(
     "/resume/analyze",
     formData,
@@ -32,8 +22,9 @@ export async function analyzeResume(
       headers: {
         "Content-Type": "multipart/form-data",
       },
-      // Local LLM inference can take minutes; override the 2 min default
-      timeout: 600000,
+      // Local LLM inference can take minutes, and the backend may retry
+      // once (2 x 600s worst case); override the 2 min default.
+      timeout: 1200000,
     }
   );
 

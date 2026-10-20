@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 
 import { evaluateAnswer } from "../../api/interview";
 import type { EvaluationRequest } from "../../types/interview";
+import { getApiErrorMessage } from "../../utils/apiError";
 
 import GlassPanel from "../ui/GlassPanel";
 import LanguageSelector from "./LanguageSelector";
@@ -221,7 +222,10 @@ export default function AnswerEditor({
       );
 
       alert(
-        "Failed to evaluate your answer. Please try again."
+        getApiErrorMessage(
+          error,
+          "Failed to evaluate your answer. Please try again."
+        )
       );
     },
   });
