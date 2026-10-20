@@ -45,13 +45,22 @@ class ResumeService:
                 "Only PDF files are supported."
             )
 
-        contents = await file.read()
+        # Read at most MAX+1 bytes so an oversized upload is never fully
+        # loaded into memory.
+        contents = await file.read(self.MAX_FILE_SIZE + 1)
 
         size = len(contents)
 
         if size > self.MAX_FILE_SIZE:
             raise ValueError(
                 "File size exceeds 10 MB."
+            )
+
+        # The Content-Type header is client-controlled; check the real
+        # file signature too.
+        if not contents.startswith(b"%PDF-"):
+            raise ValueError(
+                "Only PDF files are supported."
             )
 
         await file.seek(0)
@@ -62,7 +71,7 @@ class ResumeService:
         self,
         file: UploadFile,
     ):
-        file_bytes = await file.read()
+        file_bytes = await file.read(self.MAX_FILE_SIZE + 1)
 
         # PDF parsing is synchronous and CPU-bound; keep it off the event loop
         text = await run_in_threadpool(

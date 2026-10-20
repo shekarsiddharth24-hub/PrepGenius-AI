@@ -1,8 +1,10 @@
 import logging
+import threading
 
 import requests
 
 from app.core.config import settings
+from app.core.exceptions import ServerBusyError
 from app.utils.json_parser import extract_json, strip_thinking
 
 logger = logging.getLogger("prepgenius")
@@ -13,6 +15,11 @@ class OllamaService:
         self.base_url = settings.OLLAMA_URL
         self.url = f"{self.base_url}/api/generate"
         self.timeout = settings.OLLAMA_TIMEOUT
+        # Caps simultaneous model calls so a burst of requests cannot
+        # exhaust the machine; extra requests wait, then get HTTP 503.
+        self._slots = threading.BoundedSemaphore(
+            settings.MAX_CONCURRENT_LLM_CALLS
+        )
 
     def _post(
         self,
@@ -61,13 +68,22 @@ class OllamaService:
         if json_mode:
             payload["format"] = "json"
 
-        response = self._post(payload, timeout)
+        if not self._slots.acquire(timeout=settings.LLM_QUEUE_TIMEOUT):
+            raise ServerBusyError()
 
-        # Models without thinking support may reject the "think" field.
-        # Retry once without it instead of failing the request.
-        if response.status_code == 400 and "think" in response.text.lower():
-            payload.pop("think")
+        try:
             response = self._post(payload, timeout)
+
+            # Models without thinking support may reject the "think" field.
+            # Retry once without it instead of failing the request.
+            if (
+                response.status_code == 400
+                and "think" in response.text.lower()
+            ):
+                payload.pop("think")
+                response = self._post(payload, timeout)
+        finally:
+            self._slots.release()
 
         response.raise_for_status()
 

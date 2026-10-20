@@ -32,6 +32,7 @@ from app.core.auth import (
     create_access_token,
     get_current_user,
 )
+from app.core.rate_limit import limit_auth
 
 router = APIRouter(
     prefix="/auth",
@@ -42,6 +43,7 @@ router = APIRouter(
 @router.post(
     "/register",
     response_model=UserResponse,
+    dependencies=[Depends(limit_auth)],
 )
 def register(
     user: UserCreate,
@@ -67,6 +69,7 @@ def register(
 @router.post(
     "/login",
     response_model=Token,
+    dependencies=[Depends(limit_auth)],
 )
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -86,7 +89,7 @@ def login(
 
     token = create_access_token(
         {
-            "sub": authenticated_user.email,
+            "sub": str(authenticated_user.id),
         }
     )
 

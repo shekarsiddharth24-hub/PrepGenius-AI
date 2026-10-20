@@ -21,6 +21,7 @@ from app.repositories.interview_repository import (
 
 from app.database.database import get_db
 from app.core.auth import get_current_user
+from app.core.rate_limit import limit_llm
 from app.models.user import User
 from app.core.exceptions import EvaluationParseError
 
@@ -34,6 +35,7 @@ router = APIRouter(
 @router.post(
     "/question",
     response_model=QuestionResponse,
+    dependencies=[Depends(limit_llm)],
 )
 def generate_question(
     request: QuestionRequest,
@@ -56,6 +58,7 @@ def generate_question(
 @router.post(
     "/ideal-answer",
     response_model=IdealAnswerResponse,
+    dependencies=[Depends(limit_llm)],
 )
 def generate_answer(
     request: IdealAnswerRequest,
@@ -77,7 +80,7 @@ def generate_answer(
 def evaluate_answer(
     request: EvaluationRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(limit_llm),
 ):
 
     try:

@@ -1,10 +1,30 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     APP_NAME: str = "PrepGenius AI"
 
-    SECRET_KEY: str
+    # "development" or "production" (production hides /docs and /openapi.json)
+    ENVIRONMENT: str = "development"
+
+    # Must be a long random string, e.g.:
+    #   python -c "import secrets; print(secrets.token_urlsafe(48))"
+    SECRET_KEY: str = Field(min_length=32)
+
+    # Allowed browser origins. In .env use JSON: CORS_ORIGINS=["https://app.example.com"]
+    CORS_ORIGINS: list[str] = ["http://localhost:5173"]
+
+    # ---- Abuse protection ----
+    # Max simultaneous Ollama calls (the GPU/CPU is the bottleneck)
+    MAX_CONCURRENT_LLM_CALLS: int = 2
+    # Seconds a request waits for a free LLM slot before getting HTTP 503
+    LLM_QUEUE_TIMEOUT: int = 60
+
+    # Requests allowed per window, per user (or per IP for /auth)
+    RATE_LIMIT_WINDOW_SECONDS: int = 60
+    RATE_LIMIT_LLM_PER_WINDOW: int = 10
+    RATE_LIMIT_AUTH_PER_WINDOW: int = 10
 
     ALGORITHM: str = "HS256"
 

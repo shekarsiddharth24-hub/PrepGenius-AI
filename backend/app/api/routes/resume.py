@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.database.database import get_db
 from app.core.auth import get_current_user
+from app.core.rate_limit import limit_llm
 
 from app.models.user import User
 from app.core.roles import TargetRole
@@ -39,7 +40,7 @@ async def upload_resume(
     file: UploadFile = File(...),
     target_role: TargetRole = Form(...),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(limit_llm),
 ):
     try:
         # Validate uploaded file
