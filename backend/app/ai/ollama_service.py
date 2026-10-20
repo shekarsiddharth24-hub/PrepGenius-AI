@@ -12,13 +12,17 @@ class OllamaService:
     def __init__(self):
         self.base_url = settings.OLLAMA_URL
         self.url = f"{self.base_url}/api/generate"
-        self.timeout = 180
+        self.timeout = settings.OLLAMA_TIMEOUT
 
-    def _post(self, payload: dict) -> requests.Response:
+    def _post(
+        self,
+        payload: dict,
+        timeout: int | None = None,
+    ) -> requests.Response:
         return requests.post(
             self.url,
             json=payload,
-            timeout=self.timeout,
+            timeout=timeout or self.timeout,
         )
 
     def _request(
@@ -28,6 +32,8 @@ class OllamaService:
         model: str | None = None,
         temperature: float = 0.3,
         max_tokens: int | None = None,
+        timeout: int | None = None,
+        json_mode: bool = False,
     ) -> dict:
         """
         Send a request to the Ollama API.
@@ -51,13 +57,17 @@ class OllamaService:
             "options": options,
         }
 
-        response = self._post(payload)
+        # Constrain output to valid JSON (avoids wasted retries)
+        if json_mode:
+            payload["format"] = "json"
+
+        response = self._post(payload, timeout)
 
         # Models without thinking support may reject the "think" field.
         # Retry once without it instead of failing the request.
         if response.status_code == 400 and "think" in response.text.lower():
             payload.pop("think")
-            response = self._post(payload)
+            response = self._post(payload, timeout)
 
         response.raise_for_status()
 
@@ -95,6 +105,8 @@ class OllamaService:
         model: str | None = None,
         temperature: float = 0.3,
         max_tokens: int | None = None,
+        timeout: int | None = None,
+        json_mode: bool = False,
     ) -> str:
         """
         Generate a text response (any <think> reasoning is removed).
@@ -105,6 +117,8 @@ class OllamaService:
             model=model,
             temperature=temperature,
             max_tokens=max_tokens,
+            timeout=timeout,
+            json_mode=json_mode,
         )
 
         return strip_thinking(data["response"])
@@ -115,6 +129,7 @@ class OllamaService:
         model: str | None = None,
         temperature: float = 0.2,
         max_tokens: int | None = None,
+        timeout: int | None = None,
     ) -> dict:
         """
         Generate structured JSON.
@@ -128,6 +143,8 @@ class OllamaService:
             model=model,
             temperature=temperature,
             max_tokens=max_tokens,
+            timeout=timeout,
+            json_mode=True,
         )
 
         return extract_json(response)

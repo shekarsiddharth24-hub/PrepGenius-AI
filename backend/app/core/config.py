@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     EVALUATION_MODEL: str = "qwen3:14b"
 
-    RESUME_MODEL: str = "qwen3:14b"
+    RESUME_MODEL: str = "qwen3:8b"
 
     CHAT_MODEL: str = "qwen3:8b"
 
@@ -34,11 +34,15 @@ class Settings(BaseSettings):
     # Load models into memory when the backend starts
     WARMUP_ON_STARTUP: bool = True
 
+    # Read timeout (seconds) for Ollama requests
+    OLLAMA_TIMEOUT: int = 180
+    OLLAMA_RESUME_TIMEOUT: int = 600
+
     # Max tokens generated per task (caps rambling and long waits)
     MAX_TOKENS_QUESTION: int = 600
     MAX_TOKENS_ANSWER: int = 1200
     MAX_TOKENS_EVALUATION: int = 1200
-    MAX_TOKENS_RESUME: int = 3500
+    MAX_TOKENS_RESUME: int = 1800
 
     HF_TOKEN: str | None = None
 

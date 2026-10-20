@@ -32,6 +32,8 @@ export async function analyzeResume(
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      // Local LLM inference can take minutes; override the 2 min default
+      timeout: 600000,
     }
   );
 

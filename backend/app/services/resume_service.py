@@ -109,6 +109,8 @@ class ResumeService:
                 prompt=prompt,
                 model=settings.RESUME_MODEL,
                 max_tokens=settings.MAX_TOKENS_RESUME,
+                timeout=settings.OLLAMA_RESUME_TIMEOUT,
+                json_mode=True,
             )
 
             try:

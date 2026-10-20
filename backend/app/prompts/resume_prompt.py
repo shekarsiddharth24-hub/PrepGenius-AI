@@ -100,6 +100,9 @@ OUTPUT RULES
 - Every array must contain at least one item whenever applicable.
 - Never fabricate information.
 - Base every conclusion ONLY on the resume.
+- BE CONCISE: every "reason", "evidence" and "description" value must be
+  ONE short sentence (max 12 words). Long output makes the request slow.
+- Respect the maximum item counts given below.
 
 ==================================================
 EVIDENCE RULES
@@ -147,7 +150,7 @@ Below 60 : Weak
 TECHNICAL SKILLS
 ==================================================
 
-Extract ONLY technical skills explicitly mentioned.
+Extract ONLY technical skills explicitly mentioned (max 15 items).
 
 Return each item as:
 
@@ -173,7 +176,7 @@ Example:
 SOFT SKILLS
 ==================================================
 
-Extract ONLY soft skills explicitly mentioned.
+Extract ONLY soft skills explicitly mentioned (max 4 items).
 
 Return each item as:
 
@@ -195,7 +198,7 @@ Example:
 PROJECTS
 ==================================================
 
-For every project return:
+For each project (max 4 projects) return:
 
 {{
     "name": "...",
@@ -212,13 +215,13 @@ Rules:
 
 - name is required.
 - description may be null.
-- tech_stack must contain ONLY technologies explicitly mentioned.
+- tech_stack must contain ONLY technologies explicitly mentioned (max 6 items, "reason" max 5 words).
 
 ==================================================
 STRENGTHS
 ==================================================
 
-Return up to 5 strengths.
+Return up to 4 strengths.
 
 Each strength:
 
@@ -231,7 +234,7 @@ Each strength:
 WEAKNESSES
 ==================================================
 
-Return up to 5 weaknesses.
+Return up to 4 weaknesses.
 
 Weaknesses must be technical.
 
@@ -250,7 +253,7 @@ Compare the resume against these competencies:
 
 {focus}
 
-Return up to 8 missing skills.
+Return up to 5 missing skills.
 
 Each item:
 
@@ -263,7 +266,7 @@ Each item:
 RECOMMENDED INTERVIEW TOPICS
 ==================================================
 
-Generate up to 6 interview topics.
+Generate up to 5 interview topics.
 
 Each item:
 
